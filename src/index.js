@@ -2,54 +2,86 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
-class Square extends React.Component {
-  render() {
-    return (
-      <button
-        className="square"
-        onClick={() => this.props.onClick()}>
-        {this.props.value}
-      </button>
-    );
+const Square = (props) => (
+  <button
+    className="square"
+    onClick={props.onClick}>
+      {props.value}
+  </button>
+);
+
+const whichWins = (squares) => {
+  const lines = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+  ];
+  for (const line of lines) {
+    const [a, b, c] = line;
+    if (squares[a] != null && squares[a] === squares[b] && squares[a] === squares[c]) {
+      return squares[a];
+    }
   }
+  return null
 }
 
 class Board extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      sqares: Array(9).fill(null),
-      nextPlayer: 'X'
+      squares: Array(9).fill(null),
+      nextPlayer: 'X',
+      winner: null,
     }
   }
   
   renderSquare(i) {
     return (
       <Square
-        value={this.state.sqares[i]}
+        value={this.state.squares[i]}
         nextPlayer={this.state.nextPlayer}
         onClick={() => this.handleClick(i)} />
     );
   }
 
   handleClick(i) {
-    const squares = this.state.sqares.slice();
+    const squares = this.state.squares.slice();
+    if (squares[i] != null || this.state.winner != null) return;
+    
     squares[i] = this.state.nextPlayer;
-    const nextPlayer = this.state.nextPlayer === 'X'
-      ? 'O'
-      : 'X';
+
+    const winner = whichWins(squares);
+    console.log(winner)
+    if (winner != null) {
+      this.setState({
+        winner,
+        squares,
+      });
+      return;
+    }
+
+    const nextPlayer = this.state.nextPlayer === 'X' ? 'O' : 'X';
+
     this.setState({
-      sqares: squares,
-      nextPlayer: nextPlayer
+      squares,
+      nextPlayer,
+      winner,
     });
   }
 
   render() {
-    const status = `Next player: ${this.state.nextPlayer}`;
+    const status = this.state.winner != null
+      ? `Winner: ${this.state.winner}`
+      : `Next player: ${this.state.nextPlayer}`;
 
     return (
       <div>
-        <div className="status">{status}</div>
+        <h2 className="status">{status}</h2>
         <div className="board-row">
           {this.renderSquare(0)}
           {this.renderSquare(1)}
